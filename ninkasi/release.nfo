@@ -1,0 +1,14 @@
+trbl_logo.png
+
+== Intro ==
+We tested this in Chrome, FireFox and Opera, and it seems to work in all of
+them, however we're more confident in Chrome for now.
+
+== Instructions ==
+Chrome on Windows (w/o webserver)
+
+(1) Close all Chrome windows (otherwise the commandline switch won't work)
+(2) Open commandline
+(3) cd c:\_changeMe_\AppData\Local\Google\Chrome\Application\
+(4) chrome.exe --allow-file-access-from-files
+(5) open (2015)_trbl_-_ninkasi/index.html

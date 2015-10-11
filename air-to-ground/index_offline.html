@@ -1,0 +1,152 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+
+    <!-- Bootstrap -->
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="main.css" rel="stylesheet"/>
+    <!-- Vendor files -->
+    <script src='vendor/three.js/build/three.js'></script>
+    <script src="vendor/three.js/examples/js/Detector.js"></script>
+    <script src="vendor/threex.windowresize.js"></script>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="vendor/jquery.min.js"></script>
+	<script src="vendor/OfflineJSONLoader.js"></script>
+	<script src="vendor/OfflineObjectLoader.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.js"></script>
+    <script src="vendor/bigscreen.min.js"></script>
+    <script src="vendor/signals.min.js"></script>
+	
+	<!-- Sound js -->
+    <script src="vendor/SoundJS/lib/soundjs-0.6.0.min.js"></script>
+	
+	<!-- Tween JS -->
+	<script src="vendor/TweenJS/tweenjs-0.6.0.min.js"></script>
+	
+	<!-- Zlib -->
+	<script src="vendor/imaya/zlib.js/bin/zlib.min.js"></script>
+	
+	<!-- Base64 array -->
+	<script src="vendor/mozilla/Base64Arr.js"></script>
+
+	<!-- Base64 binary -->
+	<script src="vendor/danguer/base64-binary.js"></script>
+
+	<!-- Shader Particle Engine -->
+	<script src="vendor/SPE/ShaderParticles.min.js"></script>
+	
+    <script type="text/javascript" src="vendor/threejs_ext/postprocessing/EffectComposer.js"></script>
+    <script type="text/javascript" src="vendor/threejs_ext/postprocessing/ShaderPass.js"></script>
+    <script type="text/javascript" src="vendor/threejs_ext/postprocessing/RenderPass.js"></script>
+    <script type="text/javascript" src="vendor/threejs_ext/postprocessing/MaskPass.js"></script>
+    <script type="text/javascript" src="vendor/threejs_ext/postprocessing/BloomPass.js"></script>
+    <script type="text/javascript" src="vendor/threejs_ext/ShaderExtras.js"></script>
+    <script type="text/javascript" src="vendor/threejs_ext/shaders/CopyShader.js"></script>
+    <script type="text/javascript" src="vendor/threejs_ext/shaders/ConvolutionShader.js"></script>
+    <script type="text/javascript" src="vendor/threejs_ext/shaders/VignetteShader.js"></script>
+    <script type="text/javascript" src="vendor/threejs_ext/shaders/RGBShiftShader.js"></script>
+    <script type="text/javascript" src="vendor/threejs_ext/shaders/FilmShader.js"></script>
+    <script type="text/javascript" src="vendor/threejs_ext/shaders/DotScreenShader.js"></script>
+    <script type="text/javascript" src="vendor/threejs_ext/shaders/BrightnessContrastShader.js"></script>
+    <script type="text/javascript" src="vendor/threejs_ext/CurveExtras.js"></script>
+
+	<!-- Screenshot for debug uses only 
+    <script src="vendor/threex/THREEx.screenshot.js"></script>
+	-->
+	<!-- font as js -->
+	<script src="bin/911_Porscha_Regular.js"></script>
+	
+	<!-- KVG engine -->
+	<script src="bin/kvg.js"></script>
+	
+	<!-- Demo -->
+	<script src="bin/demo.js"></script>
+
+	
+	<!-- Assets -->
+	<script src="bin/assets.js"></script>
+	<script src="bin/3d/mushroom1.js"></script>
+	<script src="bin/3d/rock1.js"></script>
+	<script src="bin/3d/forestScene.js"></script>
+	<script src="bin/3d/spider.js"></script>
+	<!-- Contains precalculated FFT. Used in cases when realtime calculation is not possible.
+	These situations are:
+		- No webaudio
+		- Local playback
+		- No analysernode-support.
+	-->
+	
+</head>
+<body >
+<!-- Setup screen, must be id="screen" and must have elements resolution, start and fullscreen -->
+<div id="setup">
+    <br>
+    <b>Konvergence Demo Engine v0.1</b><br>
+        Select windowed resolution:<br>
+        <div id="resolution" class="btn-group">
+            <div class="btn-group" data-toggle="buttons">
+                <label class="btn btn-default active"><input type="radio" name="options" value="a" id="option5">720p</label>
+                <label class="btn btn-default"><input type="radio" name="options" value="b" id="option6">1080p</label>
+                <label class="btn btn-default"><input type="radio" name="options" value="c" id="option7">Fit To Screen</label>
+            </div>
+			<div class="checkbox" id="aspectLock">
+				<label>
+					<input type="checkbox" checked="checked"> Lock aspect ratio
+				</label>
+			</div>
+			<div class="checkbox" id="debug">
+				<label>
+					<input type="checkbox" checked="checked"> Debug
+				</label>
+			</div>
+			<div class="checkbox" id="muted">
+				<label>
+					<input type="checkbox" > Muted
+				</label>
+			</div>
+        </div>
+
+        <button id="start" type="button" class="btn btn-lg btn-default">Start</button> <b>OR</b>
+        <button id="fullscreen" type="button" class="btn btn-lg btn-default">Fullscreen</button>
+		<p id="offlineInfo">Please note this is the offline version. The demo prefers web audio loaded with XHR. If console log ( F12 ) says something about XMLHttpRequest please view the demo online or start your browser with local 
+	file access mode enabled (-allow-file-access-from-files in chrome). Demo works without enabling XHR but audio FFT is then precalculated and not as exact as it could be.</p>
+</div>
+
+<!-- Debug panel -->
+<div class="panel panel-primary" id="debugPanel">
+	<div class="panel-heading">
+		<h3 class="panel-title">Debug</h3>
+	</div>
+  <div class="panel-body">
+	  Time: <span id="debug_timesig">0:0:00<br/>(0ms)</span>
+	  <p>Parts:</p>
+	  <div id="debug_parts"></div>
+  </div>
+</div>
+
+<!-- Debug panel -->
+<div class="panel panel-primary" id="shaderDebugPanel">
+	<div class="panel-heading">
+		<h3 class="panel-title">Shader Debug</h3>
+	</div>
+  <div class="panel-body" id="shaderDebug">
+	  
+  </div>
+</div>
+
+
+<!-- The WebGL Rendering context element, must be id="demo" -->
+<div id="demo">
+	
+</div>
+
+<!-- Demo config and startup -->
+<script src='main.js'></script>
+
+</body>
+</html>

@@ -1,0 +1,678 @@
+<html>
+
+<head>
+
+  <link rel="stylesheet" type="text/css" href="main.css">
+
+  <meta name="twitter:card" content="photo">
+  <meta name="twitter:site" content="@cabbibo">
+  <meta name="twitter:creator" content="@cabbibo">
+  <meta name="twitter:url" content="http://cabbi.bo">
+  <meta name="twitter:title" content="Long Live Synesthesia">
+  <meta name="twitter:description" content="Long Live Synesthesia">
+  <meta name="twitter:creator" content="@cabbibo">
+  <meta name="twitter:image" content="http://cabbi.bo/image.png">
+  <meta name="twitter:image:width" content="1440">
+  <meta name="twitter:image:height" content="900">
+  <meta name="twitter:domain" content="cabbi.bo">
+  <meta itemprop="name" content="Cabbi.bo">
+  <meta itemprop="description" content="Long Live Synesthesia">
+  <meta itemprop="image" src="http://cabbi.bo/image.png">
+  <meta property="og:title" content="Cabbi.bo">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="http://cabbi.bo/image.png"/>
+  <meta property="og:site_name" content="Cabbi.bo">
+  <meta property="og:description" content="Long Live Synesthesia">
+
+  <style>
+
+    @font-face {
+      font-family: "GeoSans";
+      src: url("lib/GeosansLight.ttf");
+    }
+    html{ color:#fff; background:#000; font-family:"GeoSans"; font-size:20px; overflow:hidden }
+
+    #container{
+      width      : 100%;
+      height     : 100%;
+      position   : absolute;
+      top        : 0px;
+      left       : 0px;
+      background : #000;
+    }
+
+    #stats{
+      position  : absolute;
+      bottom    : -35px;
+
+      left      : 0px;
+      z-index   : 999;
+      opacity: .1;
+      display: none;
+    }
+
+    a{
+      color: #fff;
+      position: absolute;
+      z-index: 999;
+    }
+
+    #loading{
+
+      width:100%;
+      text-align:center;
+      padding-top:100px;
+      font-size:25px;
+
+    }
+    
+    a{
+      color: #fff;
+      position: absolute;
+      z-index: 999;
+      bottom:5px;
+      right:10px;
+      text-decoration:none;
+      //underline:none;
+      opacity:.5;
+      font-size: 20px;
+    }
+
+    a:hover{
+
+      text-decoration:underline;
+      opacity:1;
+
+    }
+
+    h1{
+      background: #000;
+      color: #fff;
+      margin: 0px;
+      padding: 5px;
+      font-size:25px;
+      border-bottom:1px solid white;
+    }
+
+    h1:hover{
+
+      background:#777;
+
+    }
+
+    .active{
+      background:#7ca;
+    }
+
+    .close-button{
+  
+      display:none;
+
+    }
+
+    #GUI{
+
+      position:fixed;
+      right:0px;
+      top:0px;
+      z-index:999;
+      display:none;
+
+    }
+    
+    </style>
+</head>
+<body>
+
+  <div id="GUI">
+  </div>
+  
+<script src = "lib/underscore.js"           ></script>
+<script src = "lib/three.js"                ></script>
+<script src = "lib/jquery.min.js"           ></script>
+<script src = "lib/leap.js"                 ></script>
+<script src = "lib/stats.min.js"            ></script>
+<script src = "lib/TrackballControls.js"    ></script>
+<script src = "lib/ShaderLoader.js"         ></script>
+<script src = "lib/UserAudio.js"            ></script>
+<script src = "lib/Stream.js"               ></script>
+<script src = "lib/Tween.js"               ></script>
+<script src = "lib/LoadedAudio.js"          ></script>
+<script src = "lib/AudioController.js"      ></script>
+<script src = "lib/AudioTexture.js"         ></script>
+<script src = "lib/PhysicsRenderer.js"      ></script>
+<script src = "lib/ParticleUtils.js"        ></script>
+<script src = "lib/dat.gui.min.js"          ></script>
+<script src = "lib/OBJLoader.js"            ></script>
+<script src = "lib/Loader.js"               ></script>
+<script src = "lib/Looper.js"               ></script>
+<script src = "lib/SubdivisionModifier.js"  ></script>
+
+<script src="fonts/helvetiker_bold.typeface.js"></script>
+<script src="fonts/helvetiker_regular.typeface.js"></script>
+
+
+<script src = "GEM.js"                      ></script>
+<script src = "GUI.js"                      ></script>
+
+
+<script src = "Arrangements.js"             ></script>
+
+
+<script src = "Text.js"                     ></script>
+<script src = "CurlMesh.js"                 ></script>
+<script src = "RepelerMesh.js"              ></script>
+<script src = "Tree.js"                     ></script>
+<script src = "Mountains.js"                ></script>
+<script src = "SnowflakeGeometry.js"        ></script>
+<script src = "Cloth.js"                    ></script>
+<script src = "Particles.js"                ></script>
+<script src = "RepelerMesh.js"              ></script>
+<script src = "N2.js"                       ></script>
+
+
+<script src = "loadShaders.js"              ></script>
+<script src = "loadModels.js"               ></script>
+
+
+<script src = "initTextGems.js"             ></script>
+<script src = "initModelGems.js"            ></script>
+<script src = "initShapeGems.js"            ></script>
+<script src = "initBackground.js"           ></script>
+<script src = "initRepelers.js"             ></script>
+<script src = "initSnowflakes.js"           ></script>
+<script src = "initChoreography.js"         ></script>
+<script src = "initFinalScene.js"           ></script>
+
+<script src = "updateRepelers.js"           ></script>
+<script src = "updateCubeMap.js"            ></script>
+<script src = "updateFingers.js"            ></script>
+
+
+
+<script>
+
+  var container , camera, scene, renderer , stats;
+
+  var gem , gui;
+
+  var tv1 = new THREE.Vector3();
+  var tv2 = new THREE.Vector3();
+  var tv3 = new THREE.Vector3();
+
+  var cubeMapRendered = false;
+  var cubeMapSpheres = [];
+
+  var loadedMeshes = {};
+  
+  var REPELERS = [];
+
+  var R = REPELERS;
+
+  var t1 = false;
+
+  var DEMO_DONE = false;
+
+
+  var R_VALUES = {
+
+    dampening: .9,
+    springLength: 100,
+    springForce: .000003,
+    centerForce: 3.,
+    targetForce: .01,
+    windForce:  -2,
+    windDirection: new THREE.Vector3( 0 , 0 , 1 ),
+    update: true
+
+
+  }
+
+  // TODO: make into loader
+  var loaded = 0;
+  var neededToLoad = 9;
+
+
+  var controller = new Leap.Controller();
+
+  var loader = new Loader();
+  //loader.liftCurtain();
+
+  var clock = new THREE.Clock();
+
+  var audioController = new AudioController();
+  //audioController.mute.gain.value = 0;
+
+  var TWEEN_UPDATING = true;
+ // var TWEEN_UPDATING = false;
+
+  var stream = new LoadedAudio(  audioController,'audio/toBe.mp3'  );
+
+  stream.onLoad = function(){onLoad()};
+  
+  var u = THREE.UVMapping;
+
+  /*var normalTexture = THREE.ImageUtils.loadTexture( 'img/normals/moss_normal_map.jpg', u , function(){
+   onLoad(); 
+ });*/
+ var normalTexture = THREE.ImageUtils.loadTexture( 'img/normals/chesterfield.png', u , function(){
+   onLoad(); 
+  });
+  
+  var flagTexture = THREE.ImageUtils.loadTexture( 'img/info.png' , u , function(){
+   onLoad(); 
+  });
+
+  var iriTexture = THREE.ImageUtils.loadTexture( 'img/iri/orangeTurq.png' , u , function(){
+    onLoad(); 
+  });
+
+   var matcap1 = THREE.ImageUtils.loadTexture( 'img/matcap/rough-aluminium.jpg' , u , function(){
+    onLoad(); 
+  });
+
+  var matcap2 = THREE.ImageUtils.loadTexture( 'img/matcap/posterize.png' , u , function(){
+    onLoad(); 
+  });
+
+  var matcap3 = THREE.ImageUtils.loadTexture( 'img/matcap/rough-aluminium.jpg' , u , function(){
+    onLoad(); 
+  });
+
+
+
+
+  normalTexture.wrapS = THREE.RepeatWrapping;
+  normalTexture.wrapT = THREE.RepeatWrapping;
+ /* var userAudio = new UserAudio( audioController );
+  userAudio.onStreamCreated = function(){
+
+    onLoad();
+
+  }*/
+
+  
+  /*var audio = new Audio(),
+  // `stream_url` you'd get from 
+  // requesting http://api.soundcloud.com/tracks/6981096.json
+  url = 'http://api.soundcloud.com/tracks/169306457/stream' +
+        '?client_id=2400df97862fa2c06f486af524e4f974';
+
+  audio.src = url;
+
+  var source = audioController.ctx.createMediaElementSource(audio);
+  source.connect(audioController.gain);
+  source.mediaElement.play();*/
+
+
+  var shaders;
+
+
+  loadShaders();
+  loadModels();
+
+
+  var G_UNIFORMS = {
+
+    dT        : { type:"f" , value:0                            },
+    time      : { type:"f" , value:0                            },
+    t_audio   : { type:"t" , value: audioController.texture     },
+    t_refl    : { type:"t" , value: null                        },
+    sample    : { type:"f" , value:0                            },
+    matcap    : { type:"t" , value: matcap1                     },
+    moonLight : { type:"v3" ,value: new THREE.Vector3() },
+
+  }
+
+
+
+
+  
+  var looper = new Looper( audioController , G_UNIFORMS.time , G_UNIFORMS.dT , {
+
+   // beatsPerMinute: 2048 
+    beatsPerMinute: 128
+
+  });
+
+ 
+
+
+
+
+
+ function init(){
+
+
+    scene = new THREE.Scene();
+    
+    camera = new THREE.PerspectiveCamera( 
+      50 ,
+      window.innerWidth / window.innerHeight,
+      1,
+      10000
+    );
+
+    // placing our camera position so it can see everything
+    camera.position.z = -700;
+    camera.lookAt( new THREE.Vector3() );
+
+    cubeCamera = new THREE.CubeCamera( 20, 100000, 1024 );
+    cubeCamera.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
+    scene.add( cubeCamera );
+
+    // Getting the container in the right location
+    container     = document.createElement( 'div' );
+    container.id  = 'container';
+    
+    document.body.appendChild( container );
+
+    // Getting the stats in the right position
+    stats = new Stats();
+    stats.domElement.id = 'stats';
+    document.body.appendChild( stats.domElement );
+
+
+    // Setting up our Renderer
+    renderer = new THREE.WebGLRenderer({ alpha: true });
+
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    container.appendChild( renderer.domElement );
+    renderer.domElement.style.background="#000";
+    
+    controls = new THREE.TrackballControls( camera , renderer.domElement);
+
+    controls.minDistance = 1;
+    controls.maxDistance = 300000;
+
+    // Making sure our renderer is always the right size
+    window.addEventListener( 'resize', onWindowResize , false );
+    window.addEventListener( 'mousemove', onMouseMove , false );
+   
+
+   // initBackground();
+    initRepelers();
+
+
+    var disturb = function(){
+
+      disturbRepelers( Math.random() * 20 );
+
+
+    }
+
+
+
+    Snowflakes = initSnowflakes();
+    
+    // depthWrite: false
+
+
+    ShapeGems  = initShapeGems(); 
+    FinalScene  = initFinalScene(); 
+    
+    initChoreography();
+
+  /*  
+    FinalScene.cloth.body.scale.multiplyScalar(300);
+    FinalScene.cloth.toggle();
+    FinalScene.cloth.body.rotation.x = -Math.PI / 2;
+
+    FinalScene.cloth.active = true;
+    FinalScene.cloth.update();
+    //FinalScene.cloth.active = false;*/
+
+   
+    controller.connect();
+  }
+
+
+  function animate(){
+
+
+    //camera.position.z += 1;
+
+
+    G_UNIFORMS.dT.value = clock.getDelta();
+    G_UNIFORMS.time.value += G_UNIFORMS.dT.value;
+
+    looper.update();
+    
+    audioController.update();
+    stats.update();
+
+    if( DEMO_DONE || TWEEN_UPDATING === false ){
+      controls.update();
+    }
+
+
+
+    if( TWEEN_UPDATING == true ){
+      TWEEN.update();
+    }
+
+    //FinalScene.update();
+
+     tv1.set( 0,0,0);
+    camera.lookAt( tv1 );
+
+
+
+    updateRepelers();
+    updateCubeMap();
+    updateFingers( controller.frame() );
+
+    for( var propt in ShapeGems ){
+
+      ShapeGems[propt].update();
+
+    }
+
+    for( var propt in FinalScene ){
+
+      FinalScene[propt].update();
+
+    
+    }
+
+    if( ShapeGems.points1.scaledBody ){
+
+      G_UNIFORMS.moonLight.value.copy( ShapeGems.points1.scaledBody.position );
+    }
+
+        
+    renderer.render( scene , camera );
+    requestAnimationFrame( animate );
+
+  }
+
+
+  function onMouseMove(e ){
+
+ 
+  }
+
+  // Resets the renderer to be the proper size
+  function onWindowResize(){
+
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+
+    renderer.setSize( window.innerWidth, window.innerHeight );
+   
+    var dpr = devicePixelRatio || 1;
+
+    //camUniforms.SS.value.x = window.innerWidth * dpr;
+    //camUniforms.SS.value.y = window.innerHeight * dpr;
+
+
+  }
+
+
+  function onLoad(){
+
+
+    loaded ++;
+
+    console.log(loaded );
+    if( loaded === neededToLoad ){
+
+
+      init();
+
+
+      window.setTimeout( function(){
+
+        loader.liftCurtain();
+           
+        G_UNIFORMS.dT.value = clock.getDelta();
+        G_UNIFORMS.time.value += G_UNIFORMS.dT.value;
+
+
+        if( stream ){ 
+          stream.play(); 
+          looper.start();
+        }
+        animate();
+
+      },2000 );
+    
+    }
+
+  }
+
+  function toCart( r , t , p ){
+
+    var x = r *(Math.sin(t))*(Math.cos(p));
+    var y = r *(Math.sin(t))*(Math.sin(p));
+    var z = r * (Math.cos(t));
+
+    return new THREE.Vector3(x,y,z);
+
+  }
+
+  function disturbRepelers( a ){
+
+    for( var i = 0; i< REPELERS.length; i++ ){
+
+      tv1.set( rH() * a , rH() * a  , rH() * a );
+      REPELERS[i].velocity.add( tv1 );
+
+    }
+
+
+  }
+
+  function rH(){ return Math.random() - .5 }
+
+
+  function tweenCamera( position , time , callback ){
+
+    var i = {
+      x: camera.position.x,
+      y: camera.position.y,
+      z: camera.position.z
+    }
+
+    var f = {
+  
+      x: position.x,
+      y: position.y,
+      z: position.z
+    }
+
+    var t = new TWEEN.Tween( i ).to( f , time );
+
+    t.onUpdate( function(){
+
+      camera.position.x = i.x;
+      camera.position.y = i.y;
+      camera.position.z = i.z;
+
+    });
+     t.onComplete( function(){
+
+      if( callback ) callback();
+
+    });
+
+
+
+    t.start();
+
+  }
+
+  function tweenPosition( pos ,  position , time , callback ){
+
+    var i = {
+      x: pos.x,
+      y: pos.y,
+      z: pos.z
+    }
+
+    var f = {
+  
+      x: position.x,
+      y: position.y,
+      z: position.z
+    }
+
+    var t = new TWEEN.Tween( i ).to( f , time );
+
+    t.onUpdate( function(){
+      pos.x = i.x;
+      pos.y = i.y;
+      pos.z = i.z;
+
+    });
+
+    t.onComplete( function(){
+
+      if( callback ) callback();
+
+    });
+
+
+
+    t.start();
+
+  }
+
+  
+  function tweenValue( obj , propt ,  e , time , callback ){
+
+    var i = {
+      x: obj[propt],
+    }
+
+    var f = {
+      x: e
+    }
+
+    var t = new TWEEN.Tween( i ).to( f , time );
+
+    console.log( t );
+    t.obj = obj;
+    t.propt = propt;
+    t.onUpdate( function(t){
+
+      obj[propt] = i.x;
+
+
+    });
+
+    t.onComplete( function(){
+
+      if( callback ) callback();
+
+    });
+
+    t.start();
+
+  }
+</script>
+
+
+</body>
+</html>

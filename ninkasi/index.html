@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+    <title>TRBL - ninkasi</title>
+    <link type='text/css' rel='stylesheet' href='css/reset.css'/>
+    <link type='text/css' rel='stylesheet' href='css/trblMaker.css'/>
+</head>
+<body id="root">
+
+<script src="js/lib/jsRocket.min.js"></script>
+<script src="js/lib/trblMaker-all.js"></script>
+
+<script src="js/util.js"></script>
+
+<script src="js/tunnel.js"></script>
+<script src="js/skyscraper.js"></script>
+<script src="js/objects.js"></script>
+
+<script src="js/Demo.js"></script>
+<script src="data/meat.js"></script>
+<script src="js/scene00.js"></script>
+<script>
+
+    function goesLos(){
+        document.getElementById('root').style.backgroundColor = "#000";
+        document.getElementById('root').classList.add('cursorHidden');
+
+        document.getElementById('startme').style.display = "none";
+
+        var Demo = new DemoDemo();
+        Demo.start();
+        TRBLMaker.start();
+    }
+</script>
+
+<div onclick="goesLos()" id="startme" style="font-family:sans;color:#fff;">
+F11 for fullscreen<br>
+F5 to let demo resize<br>
+CLICK ME :)
+</div>
+</body>
+</html>

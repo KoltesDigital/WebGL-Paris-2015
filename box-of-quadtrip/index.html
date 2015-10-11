@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="three.min.js"></script>
+
+            <meta charset="utf-8">
+                          <style>
+                            body {
+background-color:
+#000000;
+    margin: 0;
+overflow:
+    hidden;
+color:
+    #FFFFFF;
+font-family: 'Yanone Kaffeesatz', sans-serif;
+
+}
+
+.centered {
+  width: 100%;
+    float:left;
+      text-align: center;
+      position: absolute;
+      padding-top: 20px;
+      color:#FFFFFF;
+  text-shadow: 2px 2px #000000;
+      font-size:32px;
+      font-weight: bold;
+font-family: 'Yanone Kaffeesatz', sans-serif;
+}
+
+#teksti {
+    display: none;
+}
+
+</style>
+<link href='http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz:300' rel='stylesheet' type='text/css'>
+<script id="fragment1" type="x-shader/x-fragment">
+                            uniform float iGlobalTime;
+uniform vec2 iResolution;
+uniform sampler2D iChannel0;
+uniform sampler2D iChannel1;
+
+varying vec2 vUv;
+
+// ray marching
+const float grad_step = 0.01;
+const float clip_far = 1000.0;
+
+// math
+const float PI = 3.14159265359;
+const float DEG_TO_RAD = PI / 180.0;
+
+// distance function
+float dist_sphere( vec3 pos, float r ) {
+    return length( pos ) - r;
+}
+
+float dist_box( vec3 pos, vec3 size ) {
+    return length( max( abs( pos ) - size, 0.0 ) );
+}
+
+// get distance in the world
+float dist_field( vec3 pos ) {
+    // ...add objects here...
+
+    // object 0 : sphere
+    float d0 = dist_sphere( pos, 2.7+cos(iGlobalTime*0.1)*0.5);
+
+    // object 1 : cube
+    float d1 = dist_box( pos, vec3( 2.0+(d0*iGlobalTime*0.003) ) );
+
+    // union     : min( d0,  d1 )
+    // intersect : max( d0,  d1 )
+    // subtract  : max( d1, -d0 )
+    return max( d1, cos(d0+iGlobalTime*0.1)*d0 );
+}
+
+// phong shading
+vec3 shading( vec3 v, vec3 n, vec3 eye ) {
+    // ...add lights here...
+
+    float shininess = 16.0;
+
+    vec3 final = vec3( 0.0 );
+
+    vec3 ev = normalize( v - eye );
+    vec3 ref_ev = reflect( ev, n );
+
+    // light 0
+    {
+        vec3 light_pos   = vec3( 20.0, 20.0, 20.0 );
+        vec3 light_color = vec3( 1.0, 0.7, 0.7 );
+
+        vec3 vl = normalize( light_pos - v );
+
+        float diffuse  = max( 0.0, dot( vl, n ) );
+        float specular = max( 0.0, dot( vl, ref_ev ) );
+        specular = pow( specular, shininess );
+
+        final += light_color * ( diffuse + specular );
+    }
+
+    // light 1
+    {
+        vec3 light_pos   = vec3( -20.0, -20.0, -20.0 );
+        vec3 light_color = vec3( 0.3, 0.7, 1.0 );
+
+        vec3 vl = normalize( light_pos - v );
+
+        float diffuse  = max( 0.0, dot( vl, n ) );
+        float specular = max( 0.0, dot( vl, ref_ev ) );
+        specular = pow( specular, shininess );
+
+        final += light_color * ( diffuse + specular );
+    }
+
+    return final;
+}
+
+
+// get gradient in the world
+vec3 gradient( vec3 pos ) {
+  vec3 dx = vec3( grad_step, iGlobalTime*0.01, iGlobalTime*0.02 );
+  vec3 dy = vec3( iGlobalTime*0.01, grad_step, cos(iGlobalTime*0.2)*iGlobalTime*0.01 );
+  vec3 dz = vec3( iGlobalTime*0.02, iGlobalTime*0.03, grad_step );
+  return normalize (
+    vec3(
+      dist_field( pos + dx ) - dist_field( pos - dx+iGlobalTime*0.01 ),
+      dist_field( pos + dy ) - dist_field( pos - dy ),
+      dist_field( pos + dz ) - dist_field( pos - dz )     
+    )
+  );
+}
+
+// ray marching
+float ray_marching( vec3 origin, vec3 dir, float start, float end, float max_iterations, float stop_threshold ) {
+    float depth = start;
+    for ( int i = 0; i < 255; i++ ) {
+        float dist = dist_field( origin + dir * depth );
+        if ( dist < stop_threshold ) {
+            return depth;
+        }
+        depth += dist;
+        if ( depth >= end) {
+            return end;
+        }
+    }
+    return end;
+}
+
+// get ray direction
+vec3 ray_dir( float fov, vec2 size, vec2 pos ) {
+    vec2 xy = pos - size * 0.5;
+
+    float cot_half_fov = tan( ( 90.0 - fov * 0.5 ) * DEG_TO_RAD );
+    float z = size.y * 0.5 * cot_half_fov;
+
+    return normalize( vec3( xy, -z ) );
+}
+
+// camera rotation : pitch, yaw
+mat3 rotationXY( vec2 angle ) {
+    vec2 c = cos( angle );
+    vec2 s = sin( angle );
+
+    return mat3(
+               c.y      ,  0.0, -s.y,
+               s.y * s.x,  c.x,  c.y * s.x,
+               s.y * c.x, -s.x,  c.y * c.x
+           );
+}
+
+void main(void) {
+
+    // default ray dir
+    vec3 dir = ray_dir( 45.0, iResolution.xy, vUv*iResolution);
+
+    // default ray origin
+    vec3 eye = vec3(iGlobalTime*0.00006*tan(iGlobalTime*vUv.x), iGlobalTime*0.00002*tan(iGlobalTime*vUv.y), 10.0-iGlobalTime*0.02 );
+
+    // rotate camera
+    mat3 rot = rotationXY( vec2( iGlobalTime ) );
+    dir = rot * dir;
+    eye = rot * eye;
+
+    float stop_threshold = 0.000000111+iGlobalTime*0.000000002;
+
+    // ray marching
+    float depth = ray_marching( eye, dir, 0.0, clip_far, 1.0, stop_threshold );
+    if ( depth >= clip_far ) {
+      discard;
+    }
+
+    stop_threshold = 0.01;
+
+    // ray marching
+    float depth2 = ray_marching( eye, dir, 0.0, clip_far, 1.0, stop_threshold );
+    if ( depth2 >= clip_far ) {
+      discard;
+    }
+
+
+    // shading
+    vec3 pos = eye + dir * depth2+depth;
+    vec3 n = gradient( pos );
+    gl_FragColor = vec4( shading( pos, n-2.2+cos(iGlobalTime*0.3), eye*2.0-cos(iGlobalTime*0.001) ), 1.0 );
+}
+
+
+
+</script>
+
+<script id="vertex1" type="x-shader/x-vertex">
+varying vec2 vUv;
+void main() {
+    vUv = uv;
+    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0 );
+    gl_Position = projectionMatrix * mvPosition;
+}
+</script>
+
+
+</head>
+<body>
+
+
+<script>
+
+var camera, scene, renderer;
+var geometry, material, mesh;
+
+var tuniform, tobject;
+
+var clock;
+
+function setup() {
+
+  var W = window.innerWidth, H = window.innerHeight;
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize( W, H );
+    document.body.appendChild( renderer.domElement );
+
+    scene = new THREE.Scene();
+    clock = new THREE.Clock();
+
+    camera = new THREE.PerspectiveCamera( 45, W / H, 1, 1000 );
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    scene.add( camera );
+
+
+    camera.position.z = 1;
+    camera.position.y = 0;
+
+
+    tuniform = {
+iGlobalTime:
+        { type: 'f'
+            , value: 0.1
+        },
+iChannel0:
+        { type: 't'
+, value:
+            THREE.ImageUtils.loadTexture( 'textures/1.jpg')
+        },
+iChannel1:
+        { type: 't'
+, value:
+            THREE.ImageUtils.loadTexture( 'textures/2.jpg' )
+        },
+iResolution:
+        { type: 'v2'
+, value:
+            new THREE.Vector2( W, H )
+        }
+    };
+
+    tuniform.iChannel0.anisotropy = renderer.getMaxAnisotropy();
+    tuniform.iChannel1.anisotropy = renderer.getMaxAnisotropy();
+
+    var mat = new THREE.ShaderMaterial( {
+uniforms: tuniform,
+vertexShader: document.getElementById( 'vertex1' ).textContent,
+fragmentShader:  document.getElementById( 'fragment1' ).textContent,
+side:THREE.DoubleSide
+    } );
+
+            var tmat = new THREE.MeshBasicMaterial({
+                                   color:0xFF00000,
+                                   side:THREE.DoubleSide
+                              });
+
+
+    tobject = new THREE.Mesh(new THREE.PlaneGeometry((W/H)*1.0, 1, 1 ), mat);
+    scene.add(tobject);
+}
+
+var delta = 0.0;
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize( window.innerWidth, window.innerHeight );
+}
+
+
+
+
+
+// Rotate an object around an arbitrary axis in object space
+var rotObjectMatrix;
+function rotateAroundObjectAxis(object, axis, radians) {
+    rotObjectMatrix = new THREE.Matrix4();
+    rotObjectMatrix.makeRotationAxis(axis.normalize(), radians);
+
+    // old code for Three.JS pre r54:
+    // object.matrix.multiplySelf(rotObjectMatrix);      // post-multiply
+    // new code for Three.JS r55+:
+    object.matrix.multiply(rotObjectMatrix);
+
+    // old code for Three.js pre r49:
+    // object.rotation.getRotationFromMatrix(object.matrix, object.scale);
+    // old code for Three.js r50-r58:
+    // object.rotation.setEulerFromRotationMatrix(object.matrix);
+    // new code for Three.js r59+:
+    object.rotation.setFromRotationMatrix(object.matrix);
+}
+
+var rotWorldMatrix;
+// Rotate an object around an arbitrary axis in world space
+function rotateAroundWorldAxis(object, axis, radians) {
+    rotWorldMatrix = new THREE.Matrix4();
+    rotWorldMatrix.makeRotationAxis(axis.normalize(), radians);
+
+    // old code for Three.JS pre r54:
+    //  rotWorldMatrix.multiply(object.matrix);
+    // new code for Three.JS r55+:
+    rotWorldMatrix.multiply(object.matrix);                // pre-multiply
+
+    object.matrix = rotWorldMatrix;
+
+    // old code for Three.js pre r49:
+    // object.rotation.getRotationFromMatrix(object.matrix, object.scale);
+    // old code for Three.js pre r59:
+    // object.rotation.setEulerFromRotationMatrix(object.matrix);
+    // code for r59+:
+    object.rotation.setFromRotationMatrix(object.matrix);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+// PIIRTO
+
+var prevz = 0.0;
+
+function update() {
+    var millis = tuniform.iGlobalTime.value;
+
+    if (millis > 122) {
+      document.getElementById("teksti").style.display = "block"; 
+    }
+    if (millis > 140 && millis < 160) {
+      document.getElementById("teksti").innerHTML = "code by visy // music by zov"; 
+    }
+    if (millis > 160 && millis < 180) {
+      document.getElementById("teksti").innerHTML = "greetings to everybody on the boat"; 
+    }
+    if (millis > 180 && millis < 200) {
+      document.getElementById("teksti").innerHTML = "enjoy the mystery of not knowing everything"; 
+    }
+    if (millis > 200 && millis < 220) {
+      document.getElementById("teksti").innerHTML = "spend some time watching ZAPILYATOR demos"; 
+    }
+    if (millis > 220 && millis < 240) {
+      document.getElementById("teksti").innerHTML = "say perhaps to drugs."; 
+    }
+    if (millis > 240 && millis < 247) {
+      document.getElementById("teksti").innerHTML = "the end"; 
+    }
+    if (millis > 247 && millis < 250) {
+      document.getElementById("teksti").innerHTML = "the end."; 
+    }
+    if (millis > 250 && millis < 253) {
+      document.getElementById("teksti").innerHTML = "the end.."; 
+    }
+    if (millis > 253 && millis < 256) {
+      document.getElementById("teksti").innerHTML = "the end..."; 
+    }
+    if (millis > 256 && millis < 259) {
+      document.getElementById("teksti").innerHTML = "the end...?"; 
+    }
+    if (millis > 260) {
+      renderer.domElement.style.display = "none";
+    }
+}
+
+function draw() {
+
+    requestAnimationFrame( draw );
+
+    // experiment with code from the snippets menu here
+
+    var millis = tuniform.iGlobalTime.value;
+
+//    console.log(millis);    
+    delta=clock.getDelta();
+    if (vola < 38 && millis <= 42) tuniform.iGlobalTime.value += delta * vola*0.2;
+    else if (millis > 15.8 && millis < 42) tuniform.iGlobalTime.value += delta * (Math.cos(vola*0.02+tuniform.iGlobalTime.value)*0.75);
+    else tuniform.iGlobalTime.value += delta*vola*0.02;
+
+    update();
+
+    renderer.render( scene, camera );
+}
+
+
+   // check if the default naming is enabled, if not use the chrome one.
+    if (! window.AudioContext) {
+        if (! window.webkitAudioContext) {
+            alert('no audiocontext found');
+        }
+        window.AudioContext = window.webkitAudioContext;
+    }
+    var context = new AudioContext();
+    var audioBuffer;
+    var sourceNode;
+    var analyser;
+    var javascriptNode;
+    var vola = 0.0;
+ 
+    // load the sound
+    setupAudioNodes();
+    loadSound("cubeteaser.mp3");
+
+    function getAverageVolume(array) {
+        var values = 0;
+        var average;
+ 
+        var length = array.length;
+ 
+        // get all the frequency amplitudes
+        for (var i = 0; i < length; i++) {
+            values += array[i];
+        }
+ 
+        average = values / length;
+        return average;
+    }
+ 
+    function setupAudioNodes() {
+        // setup a javascript node
+        javascriptNode = context.createScriptProcessor(2048, 1, 1);
+        // connect to destination, else it isn't called
+        javascriptNode.connect(context.destination);
+         javascriptNode.onaudioprocess = function() {
+       
+              // get the average for the first channel
+              var array =  new Uint8Array(analyser.frequencyBinCount);
+              analyser.getByteFrequencyData(array);
+              vola = getAverageVolume(array);
+          }
+
+        // setup a analyzer
+        analyser = context.createAnalyser();
+        analyser.smoothingTimeConstant = 0.3;
+        analyser.fftSize = 1024;
+
+        // create a buffer source node
+        sourceNode = context.createBufferSource();
+        // and connect to destination
+        sourceNode.connect(analyser);
+        analyser.connect(javascriptNode);
+
+        sourceNode.connect(context.destination);        
+    }
+
+ 
+    // load the specified sound
+    function loadSound(url) {
+        var request = new XMLHttpRequest();
+        request.open('GET', url, true);
+        request.responseType = 'arraybuffer';
+ 
+        // When loaded decode the data
+        request.onload = function() {
+ 
+            // decode the data
+            context.decodeAudioData(request.response, function(buffer) {
+                // when the audio is decoded play the sound
+                playSound(buffer);
+            }, onError);
+        }
+        request.send();
+    }
+ 
+ 
+    function playSound(buffer) {
+        sourceNode.buffer = buffer;
+        var elem = document.getElementById("loader");
+        elem.parentNode.removeChild(elem);
+        setup();
+      tuniform.iGlobalTime.value =1.57;
+        sourceNode.start(0);
+        draw();
+    }
+ 
+    // log if an error occurs
+    function onError(e) {
+        console.log(e);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+<h1 id = "loader" style = "position:absolute;">At the shore of the final sea, they waited, loading...</h1>
+<div id = "teksti" class = "centered">The Box of Quadtrip opens at Payback.</div>
+</body>
+</html>

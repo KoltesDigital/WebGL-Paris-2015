@@ -1,0 +1,26 @@
+* {
+	text-align: center;
+}
+
+body {
+	background-color: black;
+	color: white;
+	font-family: 'Lobster', cursive;
+	font-size: 50px;
+	padding: 200px 50px;
+}
+
+#title {
+	font-size: 200%;
+}
+
+#author {
+	color: gray;
+	margin-top: 50px;
+}
+
+a {
+	display: block;
+	color: white;
+	margin-top: 20px;
+}

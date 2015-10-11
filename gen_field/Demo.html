@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head><meta charset="UTF-8">
+
+<style type="text/css" media="screen">
+      
+      
+      /* How to display when full screen */ 
+      /* Microsoft */
+      #test:-ms-fullscreen {
+        position:absolute;
+        left:0px;
+        top:0px;
+        width: 100%;
+        height: 100%;        
+	background-color: black;  
+      }
+      
+            
+      /* How to display when full screen */ 
+      /* Webkit */
+       #test:-webkit-full-screen {
+        position:absolute;
+        left:0px;
+        top:0px;
+        width: 100%;
+        height: 100%;        
+	background-color: red;    
+      }
+   
+      /* Mozilla */
+       #test:-moz-full-screen {
+      /* Mozilla/Gecko automatically scales to 100% */
+       /* put CSS in here*/
+      }
+
+    </style>
+
+<style type="text/css">
+ <!--
+body{
+margin: 0;
+padding: 0;
+ }
+ -->
+ </style> 
+	</head>
+  <body STYLE = "overflow:hidden;">
+	<div class="fullscreen" id="test"></div>
+<!--フルスクリーンできない
+    <script>
+	function FullScreen(){
+		window.open("./", "", "fullscreen=yes, scrollbars=yes");
+	}
+	FullScreen();
+    </script>
+-->
+	<audio id="audiotag1" src="sound/UntitledLong.mp3" preload="auto"></audio>
+
+
+
+    <!-- ******************************************************************************** -->
+    <!--   	Scene01 レイマーチ	-->
+    <!-- ******************************************************************************** -->
+    <!-- (Scene01) 頂点シェーダー -->
+    <script type="x-shader/x-vertex" id="Scene01_VS">
+	void main(){
+		//positionは予約語のようだ
+        	gl_Position=vec4( position , 1.0 );
+        }
+    </script>
+ 
+    <!-- (Scene01) フラグメントシェーダー -->
+    <script type="x-shader/x-fragment" id="Scene01_FS">
+
+uniform vec2 resolution;
+uniform float time;
+ 
+float distanceFunction(vec3 p)
+{ 
+	float repeat = 0.8+.2*sin(time);
+	//all
+	vec3 allPos = vec3(sin(time),sin(time),-1.5*time);
+	//tor
+	vec3 torPos = p + vec3( 0.0+ 0.375* sin(time),-1.49,0.0)+allPos;
+	//torPos = mod(vec3(p.x,p.y,p.z),1.0);
+	//vec3 torPos = p;
+	torPos = mod(torPos, repeat)-repeat/2.0;
+  	vec2 t = vec2( 0.75,0.749);
+	vec2 q = vec2(length(torPos.xz)-t.x,torPos.y);
+  	float d2 = length(q)-t.y;
+  	
+	//sp
+	
+	vec3 spPos = p + vec3( 0.0,-0.77,0.0)+allPos;
+	spPos = mod(spPos, repeat)-repeat/2.0;
+	float d1 =length(spPos) - 0.8;
+	return max(-d2,d1);
+	
+	//return d2;
+}
+ 
+
+vec3 getNormal(vec3 p)
+{
+  const float d = 0.0001;
+  return
+    normalize
+    (
+      vec3
+      (
+        distanceFunction(p+vec3(d,0.0,0.0))-distanceFunction(p+vec3(-d,0.0,0.0)),
+        distanceFunction(p+vec3(0.0,d,0.0))-distanceFunction(p+vec3(0.0,-d,0.0)),
+        distanceFunction(p+vec3(0.0,0.0,d))-distanceFunction(p+vec3(0.0,0.0,-d))
+      )
+    );
+}
+const vec3 alb =vec3(1.5,0.5,1.2);
+//const vec3 amb =vec3(0.2,0.45,0.38);
+const vec3 amb =vec3(0.,0.45,0.38);
+const vec3 sp=vec3(2.5,1.0,1.25);
+void main() {
+  vec2 pos = (gl_FragCoord.xy*2.0 -resolution) / resolution.y;
+ 
+  vec3 camPos = vec3(0.0, 1.4, 3.0);
+  vec3 camDir = normalize( vec3(cos(time), -0.5*sin(time), -1.0) );
+  vec3 camUp = vec3(0.0, 1.0, 0.0);
+  vec3 camSide = cross(camDir, camUp);
+vec3 lightDir = vec3(0.1,0.2,-0.5);
+  float focus = 1.8;
+ 
+  vec3 rayDir = normalize(camSide*pos.x + camUp*pos.y + camDir*focus);
+ 
+  float t = 0.0, d;
+  vec3 posOnRay = camPos;
+ 
+  for(int i=0; i<16; ++i)
+  {
+    d = distanceFunction(posOnRay);
+    if((d)<0.001) break; 
+    t += d;
+    posOnRay = camPos + t*rayDir;
+  }
+ 
+  if(abs(d) < 0.1)
+  {
+
+    vec3 normal = getNormal(posOnRay);
+	  float diff = dot(lightDir,normal);
+	  vec3 halfVec = normalize(lightDir-camDir);
+	  float spec = pow(max(dot(normal, halfVec), 0.0),20.0);
+	  vec3 light = diff*vec3(1.0)+amb;
+	  gl_FragColor = vec4(alb*light+spec*sp,1.0);
+	  //gl_FragColor = vec4(spec*vec3(1.0),1.0);
+	  
+  }else
+  {
+    gl_FragColor = vec4(0.01,0.0,0.05,1.0);
+  }
+}
+
+    </script>
+
+
+    <!-- ******************************************************************************** -->
+    <!--   	Scene04  tunnel	-->
+    <!-- ******************************************************************************** -->
+    <!-- (Scene04) 頂点シェーダー -->
+    <script type="x-shader/x-vertex" id="Scene04_VS">
+	void main(){
+		//positionは予約語のようだ
+        	gl_Position=vec4( position , 1.0 );
+        }
+    </script>
+ 
+    <!-- (Scene04) フラグメントシェーダー -->
+    <script type="x-shader/x-fragment" id="Scene04_FS">
+
+#define FNUM_MAX 8
+#define PI 3.1415926535
+#define FNUM 30.0
+
+uniform float time;
+uniform vec2 resolution;
+
+float rand(float s){
+	return fract(sin(dot(s,12.9898))*43458.5453);
+}
+const vec3 colorBlue = vec3(0.2,1.0,1.0);
+const vec3 colorPink = vec3(0.7,0.2,0.85);
+
+const vec3 colorPurple = vec3(1.0,0.4,1.5);
+const vec2 center = vec2(0.375,0.3);
+void main( void ) {
+	float yuragi;
+	float dist;
+	vec3 color =vec3(0.0);
+	float circleIts,ptclIts;
+	int maxfnum = 8;
+	float timeRand=(sin(time*1.25)+1.0)*0.5;
+	float timeSwitch = step(fract(sin(time)),0.5);
+	vec2 p=(vec2(gl_FragCoord.x,gl_FragCoord.y)/min(resolution.x,resolution.y)/2.0) -center ;
+	vec2 p0 = p; 
+	//p = p - center ;
+	float th = atan( p.y, p.x );
+	p = vec2( th* 1.0/PI +0.2*timeRand,0.008/length(p));
+	p =  mod( p * 4.0, 1.0);
+
+	float move = 0.5 + 0.2*clamp(sin(15.0*(2.5*p0.y-time)),-0.5,0.5);
+	float lineIts = 500.0 *  pow(p.x - move ,2.0);
+
+	if(lineIts<1.0)	
+	color += lineIts *mix(colorBlue,colorPurple,timeSwitch)*timeRand;
+	
+	//circle
+	circleIts = 0.01*abs(cos(time)) / pow(length(p0),2.0);
+	color += circleIts * colorBlue*(1.0-timeRand); 
+	//particle
+		for(int i = 0; i< FNUM_MAX; i++){
+		float fi = float(i);
+		vec2 o =vec2(1.0*(cos(fi/8.0*PI)-0.25),fract(fi*time));
+				
+		ptclIts = 0.001/pow(length(p-o),2.0);
+		//ptclIts = 0.005/(pow(p.x-o.x,1.0));
+		//	 *max(1.0/dist-3.0,0.0);
+		color += ptclIts* vec3(0.5*rand(0.004*fi),1.0*rand(0.003*fi),0.5)*(1.0-timeRand);
+	}
+
+	gl_FragColor = vec4(clamp(color,0.0,1.0),1.0);
+}
+
+   </script>
+    <!-- ******************************************************************************** -->
+    <!--   	Scene05  螺旋	-->
+    <!-- ******************************************************************************** -->
+   <!-- (Scene05) 頂点シェーダー -->
+    <script type="x-shader/x-vertex" id="Scene05_VS">
+	void main(){
+		//positionは予約語のようだ
+	 	//vUv=uv;
+        	//gl_Position=vec4( position , 1.0 );
+		gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        }
+    </script>
+ 
+    <!-- (Scene05) フラグメントシェーダー -->
+    <script type="x-shader/x-fragment" id="Scene05_FS">
+
+uniform float time;
+uniform vec2 resolution;
+
+void main( void ) {
+	gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+}
+
+   </script>
+
+    <!-- ******************************************************************************** -->
+    <!--   	Scene06  hamuha	-->
+    <!-- ******************************************************************************** -->
+     <!-- (Scene06) 頂点シェーダー -->
+    <script type="x-shader/x-vertex" id="Scene06_VS">
+	void main(){
+		//positionは予約語のようだ
+        	gl_Position=vec4( position , 1.0 );
+        }
+    </script>
+ 
+    <!-- (Scene06) フラグメントシェーダー -->
+    <script type="x-shader/x-fragment" id="Scene06_FS">
+
+
+
+	uniform float time;
+	uniform vec2 resolution;
+
+	const float PI = 3.1415926;
+	const vec3 backColor = vec3(0.95, 0.25, 0.25);
+
+	vec3 lineColor = vec3(1.0);
+
+	float rand(int seed, float ray) {
+	    return mod(sin(float(seed)*363.5346+ray*674.2454)*6743.4365, 1.0);
+	}
+
+	void circleLine(vec2 p, vec2 offset, float iSize, float oSize, vec3 color, inout vec3 i){
+	    vec2 q = p - offset;
+	    float l = length(q);
+	    if(l > iSize && l < oSize){
+	        i = color;
+	    }
+	}
+
+	void arcLine(vec2 p, vec2 offset, float iSize, float oSize, float rad, float height, vec3 color, inout vec3 i){
+	    float s = sin(rad);
+	    float c = cos(rad);
+	    vec2 q = (p - offset) * mat2(c, -s, s, c);
+	    float l = length(q);
+	    if(l > iSize && l < oSize && q.y > height){
+	        i = color;
+	    }
+	}
+
+	void hamuha(vec2 _q,inout vec3 destColor){
+		lineColor *= clamp(time*time,0.0,1.0);
+		//8
+		circleLine(_q, vec2(-0.375,-0.125), 0.1, 0.17, lineColor, destColor);
+		circleLine(_q, vec2(-0.375,0.12), 0.07, 0.14, lineColor, destColor);
+		//6
+		arcLine(_q, vec2(0.1, -0.05), 0.215, 0.275 ,PI *-0.28, 0.18, lineColor, destColor);
+		circleLine(_q, vec2(0.0,-0.125), 0.1, 0.17, lineColor, destColor);
+		//8
+		circleLine(_q, vec2(0.375,-0.125), 0.1, 0.17, lineColor, destColor);
+		circleLine(_q, vec2(0.375,0.12), 0.07, 0.14, lineColor, destColor);
+
+	}
+	void main( void ) {
+	    vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
+
+	    vec3 destColor = vec3(0.0);
+
+	    
+	    float s = 2.0;
+	    float c = 2.0;
+	    vec2  q;
+		vec2 q0 = vec2(0.0);
+		for(int i=0;i < 7; i++){
+				q0.x = ((float(i))-2.5) * 1.5;
+				s = 2.0 + 1.0/pow(fract(time)*2.0,5.0)*float(i-3)*cos(sin(fract(time)*2.0*float(i)));
+				//c = 2.0 + 0.1*sin(cos(time*(((float(j))*(float(i))+(float(i))))));
+
+				q= p* mat2(c, -s, s, c);
+				//destColor *=; 
+				hamuha(vec2(q.x+q0.x,q.y),destColor);
+
+		}
+		
+
+		gl_FragColor = vec4(destColor, 1.0);
+	}
+
+   </script>
+
+
+   <!-- ******************************************************************************** -->
+    <!--   	Scene07  hamuhaBalls	-->
+    <!-- ******************************************************************************** -->
+     <!-- (Scene07) 頂点シェーダー -->
+    <script type="x-shader/x-vertex" id="Scene07_VS">
+	void main(){
+		//positionは予約語のようだ
+        	gl_Position=vec4( position , 1.0 );
+        }
+    </script>
+ 
+    <!-- (Scene07) フラグメントシェーダー -->
+    <script type="x-shader/x-fragment" id="Scene07_FS">
+
+	uniform float time;
+	uniform vec2 resolution;
+
+	const float PI = 3.1415926;
+	const vec3 backColor = vec3(0.95, 0.25, 0.25);
+
+	vec3 lineColor = vec3(1.0);
+
+	float rand(int seed, float ray) {
+	    return mod(sin(float(seed)*363.5346+ray*674.2454)*6743.4365, 1.0);
+	}
+
+	void circleLine(vec2 p, vec2 offset, float iSize, float oSize, vec3 color, inout vec3 i){
+	    vec2 q = p - offset;
+	    float l = length(q);
+	    if(l > iSize && l < oSize){
+	        i = color;
+	    }
+	}
+
+	void arcLine(vec2 p, vec2 offset, float iSize, float oSize, float rad, float height, vec3 color, inout vec3 i){
+	    float s = sin(rad);
+	    float c = cos(rad);
+	    vec2 q = (p - offset) * mat2(c, -s, s, c);
+	    float l = length(q);
+	    if(l > iSize && l < oSize && q.y > height){
+	        i = color;
+	    }
+	}
+
+	void hamuha(vec2 _q,inout vec3 destColor){
+		lineColor *= clamp(time*time,0.0,1.0);
+		//8
+		circleLine(_q, vec2(-0.375,-0.125), 0.1, 0.17, lineColor, destColor);
+		circleLine(_q, vec2(-0.375,0.12), 0.07, 0.14, lineColor, destColor);
+		//6
+		arcLine(_q, vec2(0.1, -0.05), 0.215, 0.275 ,PI *-0.28, 0.18, lineColor, destColor);
+		circleLine(_q, vec2(0.0,-0.125), 0.1, 0.17, lineColor, destColor);
+		//8
+		circleLine(_q, vec2(0.375,-0.125), 0.1, 0.17, lineColor, destColor);
+		circleLine(_q, vec2(0.375,0.12), 0.07, 0.14, lineColor, destColor);
+
+	}
+	void main( void ) {
+	    vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
+
+	    vec3 destColor = vec3(0.0);
+
+	    
+	    float s = 2.0;//0.0*sin(sin(time * 2.0) * 0.75);
+	    float c = 2.0;//cos(sin(time * 2.0));
+	    vec2  q;//= p* mat2(c, -s, s, c);
+		vec2 q0 = vec2(0.0);
+		for(int i=0;i < 5; i++){
+				q0.x = ((float(i))-2.5) * 1.5;
+				s = 2.0 + 1.0/pow(fract(time),5.0)*float(i-3)*cos(sin(time*float(i)));
+				//c = 2.0 + 0.1*sin(cos(time*(((float(j))*(float(i))+(float(i))))));
+
+				q= p* mat2(c, -s, s, c);
+				//destColor *=; 
+				hamuha(vec2(q.x+q0.x,q.y),destColor);
+
+		}
+		
+
+		gl_FragColor = vec4(destColor, 1.0);
+	}
+
+   </script>
+    <!-- ******************************************************************************** -->
+    <!--   	SceneEnd 	-->
+    <!-- ******************************************************************************** -->
+    <!-- (SceneEnd) 頂点シェーダー -->
+    <script type="x-shader/x-vertex" id="SceneEnd_VS">
+	void main(){
+
+		//positionは予約語のようだ
+ 
+        	gl_Position=vec4( position , 1.0 );
+        }
+    </script>
+ 
+    <!-- (SceneEnd) フラグメントシェーダー -->
+    <script type="x-shader/x-fragment" id="SceneEnd_FS">
+
+         uniform float time;
+         uniform vec2 resolution;
+
+	void main( void ) {
+
+		gl_FragColor = vec4(0.0,0.0,0.0, 1.0);
+	}
+    </script>
+
+
+    <script src="three.min.js"></script>
+  <!---  <script src="THREEx.FullScreen.js"></script>
+  --->
+
+    <script src="js/shaders/DotScreenShader.js"></script>
+    <script src="js/shaders/CopyShader.js"></script>
+    <script src="js/shaders/RGBShiftShader.js"></script>
+
+    <script src="js/postprocessing/EffectComposer.js"></script>
+    <script src="js/postprocessing/RenderPass.js"></script>
+    <script src="js/postprocessing/MaskPass.js"></script>
+    <script src="js/postprocessing/ShaderPass.js"></script>
+    <script src="js/postprocessing/BloomPass.js"></script>
+
+    <script type="text/javascript" src="Demo_Scene01.js"></script>
+    <script type="text/javascript" src="Demo_Scene04.js"></script>
+    <script type="text/javascript" src="Demo_Scene06.js"></script>
+    <script type="text/javascript" src="Demo_Scene07.js"></script>
+    <script type="text/javascript" src="Demo_SceneEnd.js"></script>
+    <script type="text/javascript" src="Demo_Main.js"></script>
+
+    <script>
+	main( [  CreateScene01(),CreateScene04(), CreateScene06(),CreateScene07(),CreateSceneEnd() ] );
+	//main( [ CreateScene01() ] );
+	//main( [ CreateScene06() ] );
+    </script>
+
+
+  </body>
+</html>

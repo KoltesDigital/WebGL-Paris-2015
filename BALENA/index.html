@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+		<meta http-equiv="Content-Style-Type" content="text/css" charset="utf-8">
+		<meta http-equiv="Content-Script-Type" content="text/javascript" charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+		<meta name="description" content="torna-do">
+		<meta name="keywords" content="torna-do">
+
+		<link href='http://fonts.googleapis.com/css?family=Cinzel+Decorative:400,700' rel='stylesheet' type='text/css'>
+		<link rel="stylesheet" href="css/style.css" type="text/css">
+		<script type="text/javascript" src="js/minMatrixb.js"></script>
+		<script type="text/javascript" src="js/wgld.js"></script>
+		<script type="text/javascript" src="js/char.js"></script>
+		<script type="text/javascript" src="js/audio.js"></script>
+		<script type="text/javascript" src="js/script.js"></script>
+
+		<title>BALENA</title>
+
+		<!-- matrix transformation shader ===================================================== -->
+		<script id="baseVS" type="x-shader/x-vertex">
+attribute vec3 position;
+
+uniform  mat4 mvpMatrix;
+
+void main(void){
+	gl_Position = mvpMatrix * vec4(position, 1.0);
+}
+		</script>
+		<script id="baseFS" type="x-shader/x-fragment">
+precision mediump float;
+
+uniform vec4 ambient;
+
+void main(void){
+	gl_FragColor = ambient;
+}
+		</script>
+
+		<!-- board shader ===================================================================== -->
+		<script id="boardVS" type="x-shader/x-vertex">
+attribute float index;
+uniform   vec3  position[4];
+uniform   vec2  texCoord[4];
+uniform   float aspect;
+varying   vec2  vTexCoord;
+
+void main(void){
+	int i = int(index);
+	vTexCoord = texCoord[i];
+	vec3 pos = vec3(position[i].x / aspect, position[i].yz);
+	gl_Position = vec4(pos, 1.0);
+}
+		</script>
+		<script id="boardFS" type="x-shader/x-fragment">
+precision mediump float;
+
+uniform sampler2D texture;
+uniform bool      tex;
+uniform vec4      bgcolor;
+varying vec2      vTexCoord;
+
+void main(void){
+	vec4 dest;
+	if(tex){
+		dest = texture2D(texture, vec2(vTexCoord.s, 1.0 - vTexCoord.t)) * bgcolor;
+	}else{
+		dest = bgcolor;
+	}
+
+	gl_FragColor = dest;
+}
+		</script>
+
+		<!-- blur shader ====================================================================== -->
+		<script id="blurVS" type="x-shader/x-vertex">
+attribute vec3 position;
+attribute vec2 texCoord;
+uniform   mat4 mvpMatrix;
+varying   vec2 vTexCoord;
+void main(){
+	vTexCoord = texCoord;
+	gl_Position = mvpMatrix * vec4(position, 1.0);
+}
+		</script>
+		<script id="blurFS" type="x-shader/x-fragment">
+precision mediump float;
+uniform sampler2D texture;
+uniform float weight[10];
+uniform float resolution;
+uniform bool horizon;
+varying vec2 vTexCoord;
+void main(){
+	float tFrag = 1.0 / resolution;
+	vec2  fc;
+	vec3  destColor = vec3(0.0);
+
+	if(horizon){
+		fc = vec2(gl_FragCoord.s, gl_FragCoord.t);
+		destColor += texture2D(texture, (fc + vec2(-9.0, 0.0)) * tFrag).rgb * weight[9];
+		destColor += texture2D(texture, (fc + vec2(-8.0, 0.0)) * tFrag).rgb * weight[8];
+		destColor += texture2D(texture, (fc + vec2(-7.0, 0.0)) * tFrag).rgb * weight[7];
+		destColor += texture2D(texture, (fc + vec2(-6.0, 0.0)) * tFrag).rgb * weight[6];
+		destColor += texture2D(texture, (fc + vec2(-5.0, 0.0)) * tFrag).rgb * weight[5];
+		destColor += texture2D(texture, (fc + vec2(-4.0, 0.0)) * tFrag).rgb * weight[4];
+		destColor += texture2D(texture, (fc + vec2(-3.0, 0.0)) * tFrag).rgb * weight[3];
+		destColor += texture2D(texture, (fc + vec2(-2.0, 0.0)) * tFrag).rgb * weight[2];
+		destColor += texture2D(texture, (fc + vec2(-1.0, 0.0)) * tFrag).rgb * weight[1];
+		destColor += texture2D(texture, (fc + vec2( 0.0, 0.0)) * tFrag).rgb * weight[0];
+		destColor += texture2D(texture, (fc + vec2( 1.0, 0.0)) * tFrag).rgb * weight[1];
+		destColor += texture2D(texture, (fc + vec2( 2.0, 0.0)) * tFrag).rgb * weight[2];
+		destColor += texture2D(texture, (fc + vec2( 3.0, 0.0)) * tFrag).rgb * weight[3];
+		destColor += texture2D(texture, (fc + vec2( 4.0, 0.0)) * tFrag).rgb * weight[4];
+		destColor += texture2D(texture, (fc + vec2( 5.0, 0.0)) * tFrag).rgb * weight[5];
+		destColor += texture2D(texture, (fc + vec2( 6.0, 0.0)) * tFrag).rgb * weight[6];
+		destColor += texture2D(texture, (fc + vec2( 7.0, 0.0)) * tFrag).rgb * weight[7];
+		destColor += texture2D(texture, (fc + vec2( 8.0, 0.0)) * tFrag).rgb * weight[8];
+		destColor += texture2D(texture, (fc + vec2( 9.0, 0.0)) * tFrag).rgb * weight[9];
+	}else{
+		fc = gl_FragCoord.st;
+		destColor += texture2D(texture, (fc + vec2(0.0, -9.0)) * tFrag).rgb * weight[9];
+		destColor += texture2D(texture, (fc + vec2(0.0, -8.0)) * tFrag).rgb * weight[8];
+		destColor += texture2D(texture, (fc + vec2(0.0, -7.0)) * tFrag).rgb * weight[7];
+		destColor += texture2D(texture, (fc + vec2(0.0, -6.0)) * tFrag).rgb * weight[6];
+		destColor += texture2D(texture, (fc + vec2(0.0, -5.0)) * tFrag).rgb * weight[5];
+		destColor += texture2D(texture, (fc + vec2(0.0, -4.0)) * tFrag).rgb * weight[4];
+		destColor += texture2D(texture, (fc + vec2(0.0, -3.0)) * tFrag).rgb * weight[3];
+		destColor += texture2D(texture, (fc + vec2(0.0, -2.0)) * tFrag).rgb * weight[2];
+		destColor += texture2D(texture, (fc + vec2(0.0, -1.0)) * tFrag).rgb * weight[1];
+		destColor += texture2D(texture, (fc + vec2(0.0,  0.0)) * tFrag).rgb * weight[0];
+		destColor += texture2D(texture, (fc + vec2(0.0,  1.0)) * tFrag).rgb * weight[1];
+		destColor += texture2D(texture, (fc + vec2(0.0,  2.0)) * tFrag).rgb * weight[2];
+		destColor += texture2D(texture, (fc + vec2(0.0,  3.0)) * tFrag).rgb * weight[3];
+		destColor += texture2D(texture, (fc + vec2(0.0,  4.0)) * tFrag).rgb * weight[4];
+		destColor += texture2D(texture, (fc + vec2(0.0,  5.0)) * tFrag).rgb * weight[5];
+		destColor += texture2D(texture, (fc + vec2(0.0,  6.0)) * tFrag).rgb * weight[6];
+		destColor += texture2D(texture, (fc + vec2(0.0,  7.0)) * tFrag).rgb * weight[7];
+		destColor += texture2D(texture, (fc + vec2(0.0,  8.0)) * tFrag).rgb * weight[8];
+		destColor += texture2D(texture, (fc + vec2(0.0,  9.0)) * tFrag).rgb * weight[9];
+	}
+
+	gl_FragColor = vec4(destColor, 1.0);
+}
+		</script>
+
+		<!-- edge shader ====================================================================== -->
+		<script id="edgeVS" type="x-shader/x-vertex">
+attribute vec3 position;
+attribute vec2 texCoord;
+uniform   mat4 mvpMatrix;
+varying   vec2 vTexCoord;
+
+void main(){
+	vTexCoord = texCoord;
+	gl_Position = mvpMatrix * vec4(position, 1.0);
+}
+		</script>
+		<script id="edgeFS" type="x-shader/x-fragment">
+precision mediump float;
+
+uniform sampler2D texture;
+uniform float kernel[9];
+uniform float resolution;
+uniform bool  monochrome;
+varying vec2 vTexCoord;
+
+const float redScale   = 0.298912;
+const float greenScale = 0.586611;
+const float blueScale  = 0.114478;
+
+void main(){
+	vec2 offset[9];
+	offset[0] = vec2(-1.0, -1.0);
+	offset[1] = vec2( 0.0, -1.0);
+	offset[2] = vec2( 1.0, -1.0);
+	offset[3] = vec2(-1.0,  0.0);
+	offset[4] = vec2( 0.0,  0.0);
+	offset[5] = vec2( 1.0,  0.0);
+	offset[6] = vec2(-1.0,  1.0);
+	offset[7] = vec2( 0.0,  1.0);
+	offset[8] = vec2( 1.0,  1.0);
+	float tFrag = 1.0 / resolution;
+	vec2  fc = vec2(gl_FragCoord.s, gl_FragCoord.t);
+	vec3  destColor = vec3(0.0);
+
+	for(int i = 0; i < 9; i++){
+		destColor += texture2D(texture, (fc + offset[i]) * tFrag).rgb * kernel[i];
+	}
+
+	float mono = dot(vec3(redScale, greenScale, blueScale), destColor);
+	if(monochrome){
+		gl_FragColor = vec4(vec3(mono), 1.0);
+	}else{
+		gl_FragColor = vec4(destColor + mono, 1.0);
+	}
+}
+		</script>
+
+		<!-- noise shader ===================================================================== -->
+		<script id="noiseVS" type="x-shader/x-vertex">
+attribute vec3 position;
+
+void main(void){
+	gl_Position = vec4(position, 1.0);
+}
+		</script>
+		<script id="noiseFS" type="x-shader/x-fragment">
+precision mediump float;
+
+uniform bool  map;
+uniform float mapSize;
+uniform vec2  resolution;
+
+const int   oct  = 6;
+const float per  = 0.5;
+const float PI   = 3.1415926;
+const float cCorners = 1.0 / 16.0;
+const float cSides   = 1.0 / 8.0;
+const float cCenter  = 1.0 / 4.0;
+
+float interpolate(float a, float b, float x){
+	float f = (1.0 - cos(x * PI)) * 0.5;
+	return a * (1.0 - f) + b * f;
+}
+
+float rnd(vec2 p){
+	return fract(sin(dot(p ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
+float irnd(vec2 p){
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	vec4 v = vec4(rnd(vec2(i.x,       i.y      )),
+				  rnd(vec2(i.x + 1.0, i.y      )),
+				  rnd(vec2(i.x,       i.y + 1.0)),
+				  rnd(vec2(i.x + 1.0, i.y + 1.0)));
+	return interpolate(interpolate(v.x, v.y, f.x), interpolate(v.z, v.w, f.x), f.y);
+}
+
+float noise(vec2 p){
+	float t = 0.0;
+	for(int i = 0; i < oct; i++){
+		float freq = pow(2.0, float(i));
+		float amp  = pow(per, float(oct - i));
+		t += irnd(vec2(p.x / freq, p.y / freq)) * amp;
+	}
+	return t;
+}
+
+float snoise(vec2 p, vec2 q, vec2 r){
+	return noise(vec2(p.x,       p.y      )) *        q.x  *        q.y  +
+		   noise(vec2(p.x,       p.y + r.y)) *        q.x  * (1.0 - q.y) +
+		   noise(vec2(p.x + r.x, p.y      )) * (1.0 - q.x) *        q.y  +
+		   noise(vec2(p.x + r.x, p.y + r.y)) * (1.0 - q.x) * (1.0 - q.y);
+}
+
+void main(void){
+	vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / max(resolution.x, resolution.y);
+	vec2 t = mod(gl_FragCoord.xy, mapSize);
+	float n = snoise(t, t / mapSize, vec2(mapSize));
+
+	gl_FragColor = vec4(vec3(n), 1.0);
+}
+		</script>
+
+		<!-- glow shader ====================================================================== -->
+		<script id="glowVS" type="x-shader/x-vertex">
+attribute vec3 position;
+
+void main(void){
+	gl_Position = vec4(position, 1.0);
+}
+		</script>
+		<script id="glowFS" type="x-shader/x-fragment">
+precision mediump float;
+
+uniform int   mode;
+uniform float time;
+uniform vec2  resolution;
+uniform sampler2D texture;
+uniform vec4  ambient;
+uniform float lines;
+
+const float PI = 3.1415926;
+const float PI2 = PI * 2.0;
+const float VC = 1.0 / 128.0;
+const vec3  lineColor = vec3(0.1, 1.0, 0.1);
+
+void main(void){
+	float dest = 0.0;
+	vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
+	float l = (sin(gl_FragCoord.y + time * 3.0) + 1.0) / 2.0;
+	if(mode == 0){
+		float a = atan(p.x, p.y);
+		float l = length(p);
+		float u = a / PI2 + 0.5;
+		float v = mod(time, 128.0) * VC;
+		dest = texture2D(texture, vec2(u, v)).r * l;
+		dest = pow(dest, 2.0) + 0.1;
+	}
+	vec4 destColor = vec4(ambient.rgb * dest, ambient.a);
+	if(lines > 0.0){
+		destColor = vec4(destColor.rgb + lineColor * lines * l, destColor.a);
+	}
+	gl_FragColor = destColor;
+}
+		</script>
+
+		<!-- color shader ===================================================================== -->
+		<script id="colorVS" type="x-shader/x-vertex">
+attribute vec3 position;
+attribute vec3 normal;
+attribute vec4 color;
+attribute vec2 texCoord;
+attribute float type;
+uniform   mat4 mMatrix;
+uniform   mat4 mvpMatrix;
+uniform   int  onData[16];
+uniform   float times;
+uniform   int  motion;
+varying   vec3 vPosition;
+varying   vec3 vNormal;
+varying   vec4 vColor;
+varying   vec2 vTexCoord;
+
+void main(){
+	vec3 pos = position;
+	float s = 0.0;
+	int i = int(type * 2.0);
+	if(motion > 0){
+		if(i > 0){
+			s += pow(float(onData[i]) / 255.0, 5.0) * 3.0;
+			pos += normal * s;
+			pos.y += type * sin(times * 0.75) * 0.2;
+		}else{
+			if(motion > 1){pos.y += texCoord.t * sin(times * 0.75);}
+		}
+	}
+	vPosition   = (mMatrix * vec4(pos, 1.0)).xyz;
+	vNormal     = normal;
+	vColor      = color;
+	vTexCoord   = texCoord;
+	gl_Position = mvpMatrix * vec4(pos, 1.0);
+}
+		</script>
+		<script id="colorFS" type="x-shader/x-fragment">
+precision mediump float;
+
+uniform mat4 invMatrix;
+uniform vec3 lightPosition;
+uniform vec3 eyePosition;
+uniform vec3 centerPoint;
+uniform vec4 ambient;
+uniform int  mode;
+// mode -----------------------------------------------------------------------
+// 0: vertex Color + lighting
+// 1: vertex Color + lighting + texture
+// 2: vertex color + texture
+// 3: vertex color only
+uniform sampler2D texture;
+varying vec3 vPosition;
+varying vec3 vNormal;
+varying vec4 vColor;
+varying vec2 vTexCoord;
+
+void main(){
+	vec3 inverseLight = vec3(0.0);
+	vec3 eyeDirection = vec3(0.0);
+	vec3 inverseEye   = vec3(0.0);
+	vec3 halfLightEye = vec3(0.0);
+	float diff = 0.0;
+	float spec = 0.0;
+	vec4 destColor = vec4(0.0);
+	vec4 smpColor  = vec4(0.0);
+
+	if(mode < 2){
+		inverseLight = normalize(invMatrix * vec4(lightPosition, 1.0)).xyz;
+		eyeDirection = eyePosition - centerPoint;
+		inverseEye   = normalize(invMatrix * vec4(eyeDirection, 1.0)).xyz;
+		halfLightEye = normalize(inverseLight + inverseEye);
+		diff =     clamp(dot(inverseLight, vNormal), 0.2, 1.0);
+		spec = pow(clamp(dot(halfLightEye, vNormal), 0.0, 1.0), 20.0);
+		if(mode == 0){
+			destColor = vec4(vColor.rgb * diff + vec3(spec) + ambient.rgb, vColor.a * ambient.a);
+		}else{
+			smpColor  = texture2D(texture, vTexCoord.st);
+			destColor = vec4(vColor.rgb * diff + vec3(spec) + ambient.rgb, vColor.a * ambient.a) * smpColor;
+		}
+	}else{
+		if(mode == 2){
+			smpColor  = texture2D(texture, vTexCoord.st);
+			destColor = vColor * smpColor * ambient;
+		}else{
+			destColor = vColor * ambient;
+		}
+	}
+
+	gl_FragColor = destColor;
+}
+		</script>
+
+		<!-- particle shader ================================================================== -->
+		<script id="particleVS" type="x-shader/x-vertex">
+attribute vec3 position;
+attribute vec3 params;
+uniform   mat4 mMatrix;
+uniform   mat4 mvpMatrix;
+uniform   vec3 eyePosition;
+uniform   float times;
+uniform   float scales;
+varying   float vParam;
+varying   float vDistance;
+
+const float near = 0.1;
+const float far  = 50.0;
+const float coef = 1.0 / (far - near);
+
+void main(){
+	vParam = fract(params.z + times * 0.5);
+	vec3 off = vec3(cos(times * params.x * 0.5), sin(times * params.y * 0.5), 0.0);
+	vec3 pos = (mMatrix * vec4(position + off, 1.0)).xyz;
+	vDistance = min(length(pos - eyePosition) * coef, 1.0);
+	gl_PointSize = pow(1.0 - vDistance, 10.0) * 50.0 * scales;
+	gl_Position = mvpMatrix * vec4(pos, 1.0);
+}
+		</script>
+		<script id="particleFS" type="x-shader/x-fragment">
+precision mediump float;
+
+uniform vec4 ambient;
+uniform sampler2D canvasTexture;
+uniform sampler2D noiseTexture;
+varying float vParam;
+varying float vDistance;
+
+void main(){
+	vec2 uv = gl_PointCoord.st * 0.5 + vec2(0.0, 0.5);
+	vec4 smpColor = texture2D(canvasTexture, uv);
+	vec4 noiseColor = texture2D(noiseTexture, vec2(vParam));
+	gl_FragColor = ambient * vec4(smpColor.rgb * noiseColor.rgb, (1.25 - vDistance) * smpColor.a);
+}
+		</script>
+
+	</head>
+	<body>
+		<canvas id="canvas"></canvas>
+		<canvas id="texture"></canvas>
+		<div id="navi"></div>
+	</body>
+</html>

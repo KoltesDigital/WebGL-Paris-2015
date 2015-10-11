@@ -1,0 +1,243 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            outline: 0;
+            background-color: #000;
+            color: #C0C0C0;
+            text-align: center;
+        }
+		
+        canvas {
+            padding: 0;
+            outline: 0;
+            margin: auto;
+            background-color: #000000;
+            z-index: 0;
+            display: inline;
+        }
+
+        #fullscreen, #windowed {
+            cursor: pointer;
+            margin: 30px;
+            border: 1px solid #FFFFFF;
+            background-color: #909090;
+            padding: 10px;
+            color: #000;
+            position: relative;
+            top: 30px;
+			z-index: 30000;
+        }
+
+            #fullscreen:hover, #windowed:hover {
+                color: #000;
+                background-color: #FFFFFF;
+            }
+		#demo
+		{
+			background-color:#000;
+		}
+		
+		#demo .hilight
+		{
+				/* For Safari 3.1 to 6.0 */
+			-webkit-transition-property: opacity;
+			-webkit-transition-duration: 0.3s;
+			-webkit-transition-timing-function: linear;
+			-webkit-transition-delay: 0s;
+			/* Standard syntax */
+			transition-property: opacity;
+			transition-duration: 0.3s;
+			transition-timing-function: linear;
+			transition-delay: 0s;
+		
+			position:absolute;
+			left:0px;
+			top:0px;
+			z-index:200;
+			bottom:0px;
+			right:0px;
+			opacity:0;
+			background-color:#000;
+			-webkit-animation: 
+			-webkit-transform: translateZ(0.0);
+			transform: translateZ(0.0);
+		}
+		
+		#demo .darken
+		{
+			/* For Safari 3.1 to 6.0 */
+			-webkit-transition-property: opacity;
+			-webkit-transition-duration: 0.3s;
+			-webkit-transition-timing-function: linear;
+			-webkit-transition-delay: 0s;
+			/* Standard syntax */
+			transition-property: opacity;
+			transition-duration: 0.3s;
+			transition-timing-function: linear;
+			transition-delay: 0s;
+			
+			-webkit-transform: translateZ(0.0);
+			transform: translateZ(0.0);
+			
+			position:absolute;
+			left:0px;
+			top:0px;
+			z-index:199;
+			bottom:0px;
+			right:0px;
+			opacity:0;
+			background-color:#000;
+		}
+		
+		#demo .darken.active
+		{
+			opacity: 1;
+		}
+		#demo .hilight.active
+		{
+			opacity: 1;
+		}
+
+    </style>
+
+    <script type="text/javascript">
+        var globalMain;
+        function init() {
+            if (!Detector.webgl) Detector.addGetWebGLMessage();
+            var main = new wideload.Main();
+            globalMain = main;
+        }
+        function foo() {
+          //  console.log($('#timestamp').html());
+        }
+    </script>
+
+    <script type="x-shader/x-vertex" id="sem-vs">
+
+
+</script>
+
+<script type="x-shader/x-vertex" id="sem-fs">
+    
+    
+</script>
+
+    <!-- Libraries -->
+    <script type="text/javascript" src="lib/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="lib/soundjs-0.5.2.min.js"></script>
+    <script type="text/javascript" src="lib/three.js"></script>
+    <script type="text/javascript" src="lib/Detector.js"></script>
+	<script type="text/javascript" src="lib/tweenjs-0.5.1.min.js"></script>
+    <script type="text/javascript" src="lib/threejs_ext/controls/OrbitControls.js"></script>
+    <script type="text/javascript" src="lib/threejs_ext/geometryUtils.js"></script>
+    <script type="text/javascript" src="src/Stats.js"></script>
+    <script type="text/javascript" src="lib/threejs_ext/geometryUtils.js"></script>
+    <script type="text/javascript" src="lib/threejs_ext/Utils.js"></script>
+    <script type="text/javascript" src="src/helvetiker_regular.typeface.js"></script>
+    <script type="text/javascript" src="lib/voronoi/rhill-voronoi-core.js"></script>
+    <script type="text/javascript" src="lib/CurveExtras.js"></script>
+
+    <!-- ThreeJs shaders -->
+    <script type="text/javascript" src="lib/threejs_ext/postprocessing/EffectComposer.js"></script>
+    <script type="text/javascript" src="lib/threejs_ext/postprocessing/ShaderPass.js"></script>
+    <script type="text/javascript" src="lib/threejs_ext/postprocessing/RenderPass.js"></script>
+    <script type="text/javascript" src="lib/threejs_ext/postprocessing/MaskPass.js"></script>
+    <script type="text/javascript" src="lib/threejs_ext/postprocessing/BloomPass.js"></script>
+    <script type="text/javascript" src="lib/threejs_ext/ShaderExtras.js"></script>
+    <script type="text/javascript" src="lib/threejs_ext/shaders/CopyShader.js"></script>
+    <script type="text/javascript" src="lib/threejs_ext/shaders/ConvolutionShader.js"></script>
+    <script type="text/javascript" src="lib/threejs_ext/shaders/VignetteShader.js"></script>
+    <script type="text/javascript" src="lib/threejs_ext/shaders/RGBShiftShader.js"></script>
+    <script type="text/javascript" src="lib/threejs_ext/shaders/FilmShader.js"></script>
+    <script type="text/javascript" src="lib/threejs_ext/shaders/DotScreenShader.js"></script>
+    <script type="text/javascript" src="lib/threejs_ext/shaders/BrightnessContrastShader.js"></script>
+
+	
+	<!-- Additional threejs shaders -->
+	<script type="text/javascript" src="lib/Mirror.js"></script>
+	<script type="text/javascript" src="lib/WaterShader.js"></script>
+  
+	<!-- Demo framework -->
+    <script type="text/javascript" src="src/Random.js"></script>
+    <script type="text/javascript" src="src/Util/TimeSig.js"></script>
+    <script type="text/javascript" src="src/Util/UVMapper.js"></script>
+    <script type="text/javascript" src="src/Util/IntroAnimations.js"></script>
+	<script type="text/javascript" src="src/Configuration.js"></script>
+    <script type="text/javascript" src="src/BasePart.js"></script>
+    <script type="text/javascript" src="src/Main.js"></script>
+    <script type="text/javascript" src="src/Util/Asset.js"></script>
+    <script type="text/javascript" src="src/L-system/lsystem.js"></script>
+    <script type="text/javascript" src="src/OfflineJSONLoader.js"></script>
+	<script type="text/javascript" src="src/Camera/ManualControl.js"></script>
+    <script type="text/javascript" src="src/Camera/CameraController.js"></script>
+    <script type="text/javascript" src="src/VoronoiGen/VoronoiGen.js"></script>
+    
+	<!-- custom post shaders -->
+    <script type="text/javascript" src="src/Post/RGBShift.js"></script>
+	
+	<!-- json encoded js Assets -->
+	<script type="text/javascript" src="bin/js/greets.js"></script>
+	<script type="text/javascript" src="bin/js/demoname.js"></script>
+	
+	
+	<!-- Demo parts -->
+	
+    <!-- saturnus -->
+    <script type="text/javascript" src="bin/js/asteroid_arid.js"> </script>
+    <script type="text/javascript" src="bin/js/venus.js"> </script>
+    <script type="text/javascript" src="src/Saturnus/Saturnus.js"> </script>
+
+
+	<script type="text/javascript" src="src/Tubes/TubeTextureShader.js"></script>
+	<script type="text/javascript" src="src/Tubes/Tubes.js"></script>
+	
+	<!-- Demo name -->
+	<script type="text/javascript" src="src/DemoName/DemoNameShader.js"></script>
+	<script type="text/javascript" src="src/DemoName/DemoName.js"></script>
+    
+	<!-- Sun -->
+	<script type="text/javascript" src="src/Sun/SunShader.js"></script>
+	<script type="text/javascript" src="src/Sun/Sun.js"></script>
+
+	
+	<!-- Noise, test part -->
+	<script type="text/javascript" src="src/Noise/NoiseShader.js"></script>
+	<script type="text/javascript" src="src/Noise/Noise.js"></script>
+	
+	<!-- Greets -->
+	<script type="text/javascript" src="src/Greets/GreetShader.js"></script>
+	<script type="text/javascript" src="src/Greets/Greets.js"></script>
+	
+	<!-- Box hit -->
+	<script type="text/javascript" src="src/BoxHit/BoxHit.js"></script>
+	<script type="text/javascript" src="src/BoxHit/BoxHitShader.js"></script>
+
+	
+	<!-- Gears -->
+    <script type="text/javascript" src="bin/js/matcap.js"></script>
+    <script type="text/javascript" src="bin/js/matcap_invert.js"></script>
+    <script type="text/javascript" src="bin/js/matcap_sepia.js"></script>
+	<script type="text/javascript" src="src/Gears/GearsTextureShader.js"></script>
+    <script type="text/javascript" src="src/Gears/Gears.js"></script>
+	
+
+    <script type="text/javascript">
+        var postprocessing = { enabled: true };
+    </script>
+</head>
+
+<body onload="init()" onclick="foo()">
+    <div id="timestamp" style="display:block;"></div>
+    <span id="fullscreen">Fullscreen</span>
+    <span id="windowed">Windowed</span>
+    <div id="demo">
+    </div>
+</body>
+
+<div id="info"></div>
+</html>

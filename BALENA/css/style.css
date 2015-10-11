@@ -1,0 +1,70 @@
+@charset "utf-8";
+
+* {
+	margin: 0px;
+	padding: 0px;
+}
+
+html, body {
+	background-color: #111;
+	color: #eee;
+	font-family: "Cinzel Decorative", "consolas", monospace;
+	font-size: 9pt;
+	text-align: center;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+}
+
+canvas {
+	background-color: black;
+	margin: 0px auto;
+	box-shadow: 0px 0px 25px 0px black
+}
+
+#texture {
+	position: absolute;
+	display: none;
+}
+
+a, a:visited {
+	color: white;
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+#navi {
+	background-color: rgba(64, 64, 64, 0.5);
+	color: rgba(240, 240, 240, 0.75);
+	text-align: center;
+	margin: 0px;
+	width: 100%;
+	position: absolute;
+	top: 0px;
+	transition: background-color 3s linear 0, color 3s linear 0;
+	-webkit-transition: background-color 3s linear 0, color 3s linear 0;
+}
+
+#navi.hide {
+	background-color: rgba(64, 64, 64, 0.0);
+	color: rgba(240, 240, 240, 0.0);
+	transition: background-color 3s linear 0, color 3s linear 0;
+	-webkit-transition: background-color 3s linear 0, color 3s linear 0;
+}
+
+#navi.none {
+	display: none;
+}
+
+#navi p {
+	padding: 0px 15px;
+}
+
+.bufferCanvas {
+	display: block;
+	position: absolute;
+	right: 0px;
+}

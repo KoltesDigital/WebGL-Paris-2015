@@ -1,0 +1,112 @@
+html, body {
+  background: #3A3042;
+  color: #DBB425;
+  overflow: hidden;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  font-family: "Squada One", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  text-align: center;
+}
+
+div.container {
+  position: relative;
+  z-index: 2;
+  margin: 0 10vw;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.group {
+  font-size: 70px;
+  line-height: 1em;
+  font-weight: normal;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.line {
+  width: 300px;
+  margin: 15px auto;
+  height: 4px;
+  background-color: #DBB425;
+}
+
+h1 {
+  font-size: 100px;
+  line-height: 1em;
+  font-weight: normal;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+#loading, #start {
+  font-family: inherit;
+  font-size: 50px;
+  line-height: 1em;
+  font-weight: normal;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+#start {
+  color: #DBB425;
+  display: none;
+  border: none;
+  outline: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+#start:hover {
+  color: #DEC432;
+}
+#start span {
+  font-size: 80%;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+#demo {
+  width: 100%;
+  height: 100%;
+}
+
+#overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+#mask {
+  /*display: none;*/
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: multiply;
+  background-blend-mode: multiply;
+  background-image: url('../images/mask.png');
+  background-size: 100% 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+/*:-webkit-full-screen canvas {*/
+  /*width: 100%;*/
+  /*height: 100%;*/
+/*}*/

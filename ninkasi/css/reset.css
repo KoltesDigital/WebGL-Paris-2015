@@ -1,0 +1,12 @@
+body{
+    margin:0;
+    background:black;
+}
+canvas{
+    display:block;
+}
+
+.cursorHidden{
+    cursor: url('data:image/png;base64,'),
+    none !important;
+}

@@ -1,0 +1,94 @@
+html {
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+*, *:before, *:after {
+	-webkit-box-sizing: inherit;
+	-moz-box-sizing: inherit;
+	box-sizing: inherit;
+}
+
+body {
+	background-color: black;
+	margin: 0;
+}
+
+.fullscreen {
+	display: block;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+iframe.fullscreen {
+	border: 0;
+}
+
+/*tv 254, 207 - 854, 636 / 1600, 1077*/
+#tv {
+	display: none;
+}
+
+#tv.visible {
+	display: block;
+}
+
+#tv > * {
+	position: absolute;
+}
+
+#info-wrapper {
+	-webkit-transform: translate3d(0, 0, 0);
+	transform: translate3d(0, 0, 0);
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	opacity: 0;
+	transition: opacity 2s;
+	text-align: center;
+}
+
+#info-wrapper.visible {
+	opacity: 0.8;
+	transition: opacity 500ms;
+}
+
+#info-wrapper.hidden {
+	display: none;
+}
+
+#info {
+	display: inline-block;
+	background-color: black;
+	color: gray;
+	margin: 50px;
+	padding: 50px;
+	font-family: 'Lobster', cursive;
+	font-size: 30px;
+}
+
+#info span {
+	color: white;
+	font-weight: bold;
+}
+
+#info .title {
+	font-size: 160%;
+}
+
+#info .author {
+	font-size: 130%;
+}
+
+#info .rank {
+	font-size: 160%;
+}
+
+#info .compo, #info .party {
+	font-size: 130%;
+}

@@ -1,0 +1,24 @@
+function initChoreography(){
+
+    looper.addHit( function(){ disturbRepelers( 100 )} );
+
+    looper.addHit( function(){
+      Arrangements.plane( 50 , 'z' , camera.position.z - 200);
+      R_VALUES.update = !R_VALUES.update;
+      if( t1 === false ){
+        R_VALUES.targetForce = .4;
+        t1 = !t1;
+      }else{
+        R_VALUES.targetForce = .01;
+        t1 = !t1;
+      }
+
+    } , {
+      measureFrequency: 1,
+      measureOffset:0,
+      percents:[ 0.00001 , .5],
+      duration:[ 0 , 1000000 ]
+      //measureOffset: 1
+    });
+
+}
