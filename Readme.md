@@ -22,6 +22,8 @@ Presentation for WebGL Paris 2015
 16. [**Luxe** by *holon*](http://www.pouet.net/prod.php?which=66463)
 17. [**Touch Me Together** by *tmp*](http://www.pouet.net/prod.php?which=66483)
 
+Damn, Twitter told me **Ninkasi** and **BLCK4777** are not WebGL! But they are so cool, how can that be?
+
 ## Assets
 
 Thanks to their unknown authors.
