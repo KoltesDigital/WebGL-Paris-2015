@@ -233,12 +233,15 @@ function showDemo() {
 	}
 
 	timeoutIds.push(setTimeout(function() {
-		infoElement.innerHTML = '<div>' +
+		var info = '<div>' +
 			'<span class="title">' + demo.title + '</span> by <span class="author">' + demo.author + '</span>' +
 		'</div>' +
 		'<div>' + 
 			'<span class="rank">' + rankString(demo.rank) + '</span> in <span class="compo">' + demo.compo + '</span> at <span class="party">' + demo.party + '</span>' +
 		'</div>';
+		if (demo.comment)
+			info += '<div>' + demo.comment + '</div>';
+		infoElement.innerHTML = info;
 		infoWrapperElement.classList.add('visible');
 	}, 3000));
 

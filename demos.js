@@ -84,6 +84,7 @@ var demos = [
 		party: 'Evoke 2015',
 		pouet: 66100,
 		duration: 1*60 + 15,
+		comment: 'Actually, this is not WebGL! Sorry.',
 	},
 	{
 		iframe: 'small-worlds/primitive-iwanttoseeotherworlds.html',
@@ -154,6 +155,7 @@ var demos = [
 		party: 'Assembly 2015',
 		pouet: 66035,
 		duration: 1*60 + 50,
+		comment: 'Actually, this is not WebGL! Sorry.',
 	},
 	{
 		iframe: 'other-worlds/primitive-_-i_want_to_see_other_worlds.html',
